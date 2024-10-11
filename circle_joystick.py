@@ -1,33 +1,41 @@
-import cv2
+# written by vikash singh thakur
+# u are freeee...    to use it whatever way u want it to
+# date 11/10/24
+
+# I LOVE ROBOTICS..........
+
+# NOTE : written in hindi and english formate  
+
+import cv2                                            #yaha sare libraries included hai
 import math
 from cvzone.HandTrackingModule import HandDetector
 from pyfirmata import Arduino
 
-# Initialize HandDetector for both hands
-detector = HandDetector(detectionCon=0.8, maxHands=2)
+ 
+detector = HandDetector(detectionCon=0.8, maxHands=2)  ## maine yaha thresold apne according set kiya hai aap apne accoding change kr sakte ho
 
-# Initialize video capture
-video = cv2.VideoCapture(2)
+ 
+video = cv2.VideoCapture(2)  # camera acces ke liye aap ise change kr sakte ho 0 1 or 2 me se kisi ek me app try kr ke dekh sakte ho
 
-# Setup the Arduino board
-board = Arduino('/dev/ttyACM0')  # Replace with your port, e.g., 'COM3' on Windows
+ 
+board = Arduino('/dev/ttyACM0')   # ye port system ke according vari kr sakta hai to pleses check kr le ki aapka arduino kis com port se connected hai
 
-# Define pins for the four servos
-left_thumb_x_pin = board.get_pin('d:9:s')   # Left thumb X-axis servo
-left_thumb_y_pin = board.get_pin('d:10:s')  # Left thumb Y-axis servo
-right_thumb_x_pin = board.get_pin('d:11:s') # Right thumb X-axis servo
-right_thumb_y_pin = board.get_pin('d:12:s') # Right thumb Y-axis servo
+ 
+left_thumb_x_pin = board.get_pin('d:9:s')    # ye pins hai jinse arduino cnneted hai apke servo motors se  9 10 11 and 12 wale
+left_thumb_y_pin = board.get_pin('d:10:s')   
+right_thumb_x_pin = board.get_pin('d:11:s')  
+right_thumb_y_pin = board.get_pin('d:12:s')  
 
-# Define square properties
-square_size = 200  # Length of one side of the square
+ 
+square_size = 200                     # ye bhi aapke camera ke accordding vary kr sakta hai to plase check kr ke aap apne according use kr lewe
 left_square_top_left = (350, 200)
 right_square_top_left = (100, 200)
 
 while True:
-    ret, frame = video.read()
+    ret, frame = video.read()    # yaha aaap frame set kr sakte ho
     frame = cv2.flip(frame, 1)
 
-    # Draw squares on the frame
+    
     cv2.rectangle(frame, left_square_top_left, 
                   (left_square_top_left[0] + square_size, left_square_top_left[1] + square_size), 
                   (0, 255, 0), 2)
@@ -36,33 +44,33 @@ while True:
                   (right_square_top_left[0] + square_size, right_square_top_left[1] + square_size), 
                   (0, 255, 0), 2)
 
-    # Initialize servo angles
-    left_servo_x_angle = 90
+   
+    left_servo_x_angle = 90  # initial angles ke liye maine 90 as a defoult angle se t kiya hai isme 
     left_servo_y_angle = 90
     right_servo_x_angle = 90
     right_servo_y_angle = 90
 
-    # Detect hands in the frame
+     
     hands, img = detector.findHands(frame)
 
     if hands:
         for hand in hands:
-            lmList = hand['lmList']  # Landmark list of the hand
-            thumb_tip_pos = lmList[4][:2]  # Get the (x, y) position of the thumb tip
+            lmList = hand['lmList']  # ye land mark ka list hai 
+            thumb_tip_pos = lmList[4][:2]  # yaha se hume thumb ka position milta hai screen ke according in x and y
 
-            print(f'Thumb Tip Position: {thumb_tip_pos}')  # Debugging statement
+            print(f'Thumb Tip Position: {thumb_tip_pos}')  # Debugging ke liye maine ise add kiya hai 
 
-            # Check if left hand
+            # yaha hum left hand ki availibility check karenge 
             if hand['type'] == "Left":
-                # Check if the thumb tip is inside the left square
+                # yaha gar jo hamara tip hai thumb ka wo agar square ke under aa rha hai to ye response krega 
                 if (left_square_top_left[0] <= thumb_tip_pos[0] <= left_square_top_left[0] + square_size and
                         left_square_top_left[1] <= thumb_tip_pos[1] <= left_square_top_left[1] + square_size):
                     
-                    # Calculate coordinates relative to square's top-left corner
+                    # isme hum left thumb ka coordinate calculate 
                     x = thumb_tip_pos[0] - left_square_top_left[0]
                     y = thumb_tip_pos[1] - left_square_top_left[1]
 
-                    # Debugging statement to check x, y values
+                    # Debugging 
                     print(f'Left Thumb X: {x}, Y: {y}') 
 
                     # Map coordinates to servo angles
@@ -73,28 +81,28 @@ while True:
                     left_thumb_x_pin.write(left_servo_x_angle)
                     left_thumb_y_pin.write(left_servo_y_angle)
 
-            # Check if right hand
+            # Check karega agr right hand hoga to yaha se 
             elif hand['type'] == "Right":
-                # Check if the thumb tip is inside the right square
+                # yaha dekhenge ki jo right hand ka thumb ander hai ya nahi 
                 if (right_square_top_left[0] <= thumb_tip_pos[0] <= right_square_top_left[0] + square_size and
                         right_square_top_left[1] <= thumb_tip_pos[1] <= right_square_top_left[1] + square_size):
 
-                    # Calculate coordinates relative to square's top-left corner
+                    # relative coordinate calcute krenge taki hum servo ke liye mapping value find kr sake
                     x = thumb_tip_pos[0] - right_square_top_left[0]
                     y = thumb_tip_pos[1] - right_square_top_left[1]
 
-                    # Debugging statement to check x, y values
+                    
                     print(f'Right Thumb X: {x}, Y: {y}') 
 
-                    # Map coordinates to servo angles
+                    # Map karenge coordinates of thumb for the servo angle motion 
                     right_servo_x_angle = int((x / square_size) * 180)  # Map X to 0-180
                     right_servo_y_angle = int((y / square_size) * 180)  # Map Y to 0-180
 
-                    # Control right thumb servos
+                    # Control krna hai right thumb servo ko 
                     right_thumb_x_pin.write(right_servo_x_angle)
                     right_thumb_y_pin.write(right_servo_y_angle)
 
-    # Print servo angles above the squares
+    # Print karenge yaha pe servo angles ko 
     cv2.putText(frame, f'Left X: {left_servo_x_angle}', (left_square_top_left[0], left_square_top_left[1] - 20),
                 cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.putText(frame, f'Left Y: {left_servo_y_angle}', (left_square_top_left[0], left_square_top_left[1] - 5),
@@ -107,7 +115,7 @@ while True:
 
     cv2.imshow("frame", frame)
 
-    # Exit on pressing 'k'
+    # bahar nikle ke liye press 'k'
     k = cv2.waitKey(1)
     if k == ord("k"):
         break
