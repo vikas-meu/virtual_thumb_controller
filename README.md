@@ -21,8 +21,8 @@ This project implements a virtual joystick controller using OpenCV and MediaPipe
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/vikas-meu/virtual_thumb_controller
+   cd virtual_thumb_controller
 2. **Install required packages**:
    ```bash
    pip install opencv-python mediapipe cvzone pyfirmata
